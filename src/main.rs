@@ -1,4 +1,7 @@
 use serde::Deserialize;
+use std::fs;
+use std::fs::File;
+use std::io::Write;
 
 #[derive(Deserialize, Debug)]
 struct CargoToml {
@@ -12,7 +15,7 @@ struct Package {
 }
 
 fn main() {
-    let cargo_toml = std::fs::read_to_string("Cargo.toml").unwrap();
+    let cargo_toml = fs::read_to_string("Cargo.toml").unwrap();
     let cargo_toml: CargoToml = toml::from_str(&cargo_toml).unwrap();
 
     let home_dir = home::home_dir().unwrap();
@@ -44,4 +47,7 @@ comment=
 
     println!("{}", desktop_file);
     println!("{}", desktop_file_path.display());
+
+    let mut file = File::create(desktop_file_path).unwrap();
+    file.write_all(desktop_file.as_bytes()).unwrap();
 }
