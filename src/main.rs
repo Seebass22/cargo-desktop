@@ -16,8 +16,20 @@ struct Package {
 }
 
 fn main() {
-    let cargo_toml = fs::read_to_string("Cargo.toml").unwrap();
-    let cargo_toml: CargoToml = toml::from_str(&cargo_toml).unwrap();
+    let cargo_toml = match fs::read_to_string("Cargo.toml") {
+        Ok(content) => content,
+        Err(e) => {
+            eprintln!("Error reading Cargo.toml: {}", e);
+            std::process::exit(-1);
+        }
+    };
+    let cargo_toml: CargoToml = match toml::from_str(&cargo_toml) {
+        Ok(toml) => toml,
+        Err(e) => {
+            eprintln!("Error parsing Cargo.toml: {}", e.message());
+            std::process::exit(-1);
+        }
+    };
 
     let home_dir = home::home_dir().unwrap();
 
