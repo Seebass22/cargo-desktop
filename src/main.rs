@@ -1,6 +1,7 @@
 use serde::Deserialize;
 use std::fs;
 use std::fs::File;
+use std::io;
 use std::io::Write;
 
 #[derive(Deserialize, Debug)]
@@ -45,9 +46,23 @@ comment=
     desktop_file_path.push("applications");
     desktop_file_path.push(format!("{}.desktop", cargo_toml.package.name));
 
-    println!("{}", desktop_file);
-    println!("{}", desktop_file_path.display());
+    if desktop_file_path.exists() {
+        eprint!(
+            "{} already exists. Write anyways? [y/N]: ",
+            desktop_file_path.display()
+        );
+        io::stdout().flush().unwrap();
 
-    let mut file = File::create(desktop_file_path).unwrap();
+        let mut line = String::new();
+        io::stdin().read_line(&mut line).unwrap();
+        if line != "y\n" {
+            eprintln!("aborted");
+            std::process::exit(0);
+        }
+    }
+
+    let mut file = File::create(&desktop_file_path).unwrap();
     file.write_all(desktop_file.as_bytes()).unwrap();
+
+    println!("{}", desktop_file_path.display());
 }
