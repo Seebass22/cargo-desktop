@@ -42,11 +42,30 @@ fn main() {
         "[Desktop Entry]
 Encoding=UTF-8
 Type=Application
-NoDisplay=false
-Terminal=false
+
+# Specific name of the application, for example \"Firefox\"
 Name={}
+
+# Program to execute, possibly with arguments
 Exec={}
+
+# Generic name of the application, for example \"Web Browser\"
+# GenericName=
+
+# Tooltip for the entry, for example \"View sites on the Internet\"
 comment=
+
+# Name or path of of the icon that will be used to display this entry
+Icon=
+
+# Categories in which the entry should be shown in a menu
+Categories=
+
+# Whether to hide the program in menus
+NoDisplay=false
+
+# Whether the program runs in a terminal window
+Terminal=false
 ",
         cargo_toml.package.name,
         exec_path.display(),
