@@ -3,6 +3,19 @@ use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Write;
+use clap::Parser;
+
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    /// Automatically answer yes to confirmation prompt
+    #[arg(short = 'y', long, default_value_t = false)]
+    assume_yes: bool,
+
+    /// Open the desktop file in an editor
+    #[arg(short = 'e', long, default_value_t = false)]
+    edit: bool,
+}
 
 #[derive(Deserialize, Debug)]
 struct CargoToml {
@@ -16,6 +29,8 @@ struct Package {
 }
 
 fn main() {
+    let cli = Cli::parse();
+
     let cargo_toml = match fs::read_to_string("Cargo.toml") {
         Ok(content) => content,
         Err(e) => {
@@ -77,7 +92,7 @@ Terminal=false
     desktop_file_path.push("applications");
     desktop_file_path.push(format!("{}.desktop", cargo_toml.package.name));
 
-    if desktop_file_path.exists() {
+    if desktop_file_path.exists() && !cli.assume_yes {
         eprint!(
             "{} already exists. Write anyways? [y/N]: ",
             desktop_file_path.display()
