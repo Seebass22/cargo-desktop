@@ -5,6 +5,8 @@ use std::io;
 use std::io::Write;
 use clap::Parser;
 
+mod edit;
+
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -111,4 +113,8 @@ Terminal=false
     file.write_all(desktop_file.as_bytes()).unwrap();
 
     println!("{}", desktop_file_path.display());
+
+    if cli.edit {
+        edit::edit(&desktop_file_path);
+    }
 }
