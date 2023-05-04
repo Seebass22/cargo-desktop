@@ -1,22 +1,31 @@
+use clap::{Parser, Subcommand};
 use serde::Deserialize;
 use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::Write;
-use clap::Parser;
 
 mod edit;
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    /// Automatically answer yes to confirmation prompt
-    #[arg(short = 'y', long, default_value_t = false)]
-    assume_yes: bool,
+    #[command(subcommand)]
+    desktop: Commands,
+}
 
-    /// Open the desktop file in an editor
-    #[arg(short = 'e', long, default_value_t = false)]
-    edit: bool,
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Create a .desktop file
+    Desktop {
+        /// Automatically answer yes to confirmation prompt
+        #[arg(short = 'y', long, default_value_t = false)]
+        assume_yes: bool,
+
+        /// Open the desktop file in an editor
+        #[arg(short = 'e', long, default_value_t = false)]
+        edit: bool,
+    },
 }
 
 #[derive(Deserialize, Debug)]
@@ -32,6 +41,7 @@ struct Package {
 
 fn main() {
     let cli = Cli::parse();
+    let Commands::Desktop { assume_yes, edit } = cli.desktop;
 
     let cargo_toml = match fs::read_to_string("Cargo.toml") {
         Ok(content) => content,
@@ -94,7 +104,7 @@ Terminal=false
     desktop_file_path.push("applications");
     desktop_file_path.push(format!("{}.desktop", cargo_toml.package.name));
 
-    if desktop_file_path.exists() && !cli.assume_yes {
+    if desktop_file_path.exists() && !assume_yes {
         eprint!(
             "{} already exists. Write anyways? [y/N]: ",
             desktop_file_path.display()
@@ -114,7 +124,7 @@ Terminal=false
 
     println!("{}", desktop_file_path.display());
 
-    if cli.edit {
+    if edit {
         edit::edit(&desktop_file_path);
     }
 }
