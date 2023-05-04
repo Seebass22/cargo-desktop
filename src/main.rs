@@ -36,7 +36,8 @@ struct CargoToml {
 #[derive(Deserialize, Debug)]
 struct Package {
     name: String,
-    _description: Option<String>,
+    #[serde(rename = "default-run")]
+    default_run: Option<String>,
 }
 
 fn main() {
@@ -60,10 +61,15 @@ fn main() {
 
     let home_dir = home::home_dir().unwrap();
 
+    let project_name = match cargo_toml.package.default_run {
+        Some(name) => name,
+        None => cargo_toml.package.name,
+    };
+
     let mut exec_path = home_dir.clone();
     exec_path.push(".cargo");
     exec_path.push("bin");
-    exec_path.push(&cargo_toml.package.name);
+    exec_path.push(&project_name);
 
     let desktop_file = format!(
         "[Desktop Entry]
@@ -94,7 +100,7 @@ NoDisplay=false
 # Whether the program runs in a terminal window
 Terminal=false
 ",
-        cargo_toml.package.name,
+        &project_name,
         exec_path.display(),
     );
 
@@ -102,7 +108,7 @@ Terminal=false
     desktop_file_path.push(".local");
     desktop_file_path.push("share");
     desktop_file_path.push("applications");
-    desktop_file_path.push(format!("{}.desktop", cargo_toml.package.name));
+    desktop_file_path.push(format!("{}.desktop", &project_name));
 
     if desktop_file_path.exists() && !assume_yes {
         eprint!(
