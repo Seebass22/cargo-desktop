@@ -8,7 +8,7 @@ use std::io::Write;
 mod edit;
 
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None, name = "cargo", bin_name = "cargo")]
 struct Cli {
     #[command(subcommand)]
     desktop: Commands,
