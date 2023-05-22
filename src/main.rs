@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use serde::Deserialize;
 use std::fs;
 use std::fs::File;
@@ -7,25 +7,24 @@ use std::io::Write;
 
 mod edit;
 
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None, name = "cargo", bin_name = "cargo")]
-struct Cli {
-    #[command(subcommand)]
-    desktop: Commands,
+#[derive(Parser)]
+#[command(name = "cargo")]
+#[command(bin_name = "cargo")]
+enum CargoCli {
+    Desktop(DesktopArgs),
 }
 
-#[derive(Subcommand, Debug)]
-enum Commands {
-    /// Create a .desktop file
-    Desktop {
-        /// Automatically answer yes to confirmation prompt
-        #[arg(short = 'y', long, default_value_t = false)]
-        assume_yes: bool,
+#[derive(clap::Args)]
+#[command(author, version, about, long_about = None)]
+/// Create a .desktop file
+struct DesktopArgs {
+    /// Automatically answer yes to confirmation prompt
+    #[arg(short = 'y', long, default_value_t = false)]
+    assume_yes: bool,
 
-        /// Open the desktop file in an editor
-        #[arg(short = 'e', long, default_value_t = false)]
-        edit: bool,
-    },
+    /// Open the desktop file in an editor
+    #[arg(short = 'e', long, default_value_t = false)]
+    edit: bool,
 }
 
 #[derive(Deserialize, Debug)]
@@ -41,8 +40,7 @@ struct Package {
 }
 
 fn main() {
-    let cli = Cli::parse();
-    let Commands::Desktop { assume_yes, edit } = cli.desktop;
+    let CargoCli::Desktop(args) = CargoCli::parse();
 
     let cargo_toml = match fs::read_to_string("Cargo.toml") {
         Ok(content) => content,
@@ -104,13 +102,13 @@ Terminal=false
         exec_path.display(),
     );
 
-    let mut desktop_file_path = home_dir.clone();
+    let mut desktop_file_path = home_dir;
     desktop_file_path.push(".local");
     desktop_file_path.push("share");
     desktop_file_path.push("applications");
     desktop_file_path.push(format!("{}.desktop", &project_name));
 
-    if desktop_file_path.exists() && !assume_yes {
+    if desktop_file_path.exists() && !args.assume_yes {
         eprint!(
             "{} already exists. Write anyways? [y/N]: ",
             desktop_file_path.display()
@@ -130,7 +128,7 @@ Terminal=false
 
     println!("{}", desktop_file_path.display());
 
-    if edit {
+    if args.edit {
         edit::edit(&desktop_file_path);
     }
 }
